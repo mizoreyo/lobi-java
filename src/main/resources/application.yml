@@ -1,0 +1,53 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: lobi
+  datasource:
+    url: jdbc:mysql://localhost:3306/lobi?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+alibaba:
+  cloud:
+    access-key: LTAI4G1LhhqpbAzVWqnw8YjY            #账号 AccessKey
+    secret-key: vjv0TYqAYxp1CvmPKGzo2LdmwMxIE6     #密码 secretKey
+    oss:
+      endpoint: oss-cn-beijing.aliyuncs.com         #给哪块进行上传 endpoint
+      bucket: lobi-static                            #自定义属性，bucket名称
+jwt:
+  tokenHeader: Authorization #JWT存储的请求头
+  secret: mizore-lobi-secret #JWT加解密使用的密钥
+  expiration: 604800 #JWT的超期限时间(60*60*24*7)
+  tokenHead: 'Bearer '  #JWT负载中拿到开头
+elasticsearch:
+  host: localhost
+  port: 9200
+  scheme: "http"
+secure:
+  ignored:
+    urls: #安全路径白名单
+      - /swagger-ui/**
+      - /swagger-resources/**
+      - /v2/api-docs
+      - /v3/api-docs
+      - /webjars/**
+      - /admin/login
+      - /admin/register
+      - /admin/info
+      - /admin/logout
+      - /article/info/**
+      - /article/recommend
+      - /article/list/views
+      - /subject/hot
+      - /search/**
+      - /user/info/count/**
+      - /subject/info/count/**
+      - /collection/info/count/**
+      - /article/page
+      - /subscribe/status
+      - /thumb/status
+      - /comment/tree
+      - /user/recommend

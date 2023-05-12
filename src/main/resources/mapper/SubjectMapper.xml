@@ -1,0 +1,11 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.mizore.lobi.mapper.SubjectMapper">
+    <select id="queryHotSubjects" resultType="site.mizore.lobi.entity.po.Subject">
+        SELECT t1.*, COUNT(t1.id) AS pub_count
+        FROM t_subject t1
+                 LEFT JOIN t_article t2 ON t1.id = t2.subject
+        GROUP BY t1.id
+        ORDER BY pub_count DESC
+            LIMIT #{num}
+    </select>
+</mapper>

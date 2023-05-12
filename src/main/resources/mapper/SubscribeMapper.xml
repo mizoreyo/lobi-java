@@ -1,0 +1,18 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.mizore.lobi.mapper.SubscribeMapper">
+
+    <select id="getUnsubUserIdsBySubCount" resultType="java.lang.Long">
+        SELECT user_id
+        FROM (SELECT t1.id AS user_id, t2.subscriber AS user_suber
+        FROM t_user t1
+        LEFT JOIN t_subscribe t2 ON t1.id = t2.resource and t2.type = 'user'
+        <if test="user!=null">
+            WHERE t1.id!=#{user}
+            and (t2.subscriber!=#{user} OR t2.subscriber IS NULL)
+        </if>
+        ) AS user_sub
+        GROUP BY user_id
+        ORDER BY COUNT(user_suber) DESC
+        LIMIT 5
+    </select>
+</mapper>
