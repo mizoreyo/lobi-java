@@ -60,4 +60,17 @@ public class AdminController {
         return CommonResult.success(userInfoVO);
     }
 
+    @ApiOperation("管理员登录")
+    @PostMapping("/login/manager")
+    public CommonResult managerLogin(@Validated @RequestBody UserLoginParam userLoginParam) {
+        String token = adminService.managerLogin(userLoginParam);
+        if (token == null) {
+            return CommonResult.failed("非管理员用户");
+        }
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("token", token);
+        tokenMap.put("tokenHead", tokenHead);
+        return CommonResult.success(tokenMap);
+    }
+
 }

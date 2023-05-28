@@ -2,7 +2,9 @@ package site.mizore.lobi.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import site.mizore.lobi.entity.po.Subject;
 import site.mizore.lobi.entity.po.Subscribe;
 import site.mizore.lobi.entity.po.User;
 import site.mizore.lobi.entity.vo.SubjectCountVO;
+import site.mizore.lobi.entity.vo.SubjectVO;
 import site.mizore.lobi.entity.vo.UserInfoVO;
 import site.mizore.lobi.enums.ResourceTypeEnum;
 import site.mizore.lobi.exception.Asserts;
@@ -152,6 +155,55 @@ public class SubjectServiceImpl extends ServiceImpl<SubjectMapper, Subject> impl
             return countVO;
         }).collect(Collectors.toList());
         return subjectCountVOS;
+    }
+
+    @Override
+    public CommonPage<SubjectVO> page(Integer page, Integer size, String q) {
+        Page<Subject> queryPage = Page.of(page, size);
+        LambdaQueryChainWrapper<Subject> subjectLambdaQuery = lambdaQuery();
+        if (StrUtil.isNotBlank(q)) {
+            subjectLambdaQuery.like(Subject::getName, q);
+        }
+        Page<Subject> subjectPage = subjectLambdaQuery.page(queryPage);
+        CommonPage<SubjectVO> commonPage = new CommonPage<>();
+        commonPage.setTotal(subjectPage.getTotal());
+        List<SubjectVO> data = subjectPage.getRecords().stream().map(this::subjectToVO).collect(Collectors.toList());
+        commonPage.setData(data);
+        return commonPage;
+    }
+
+    @Override
+    public SubjectVO get(Long id) {
+        Subject subject = getById(id);
+        if (subject == null) {
+            Asserts.fail("找不到专题");
+        }
+        return subjectToVO(subject);
+    }
+
+    @Override
+    public void updateSubject(SubjectEditParam param) {
+        Subject subject = new Subject();
+        BeanUtil.copyProperties(param, subject);
+        updateById(subject);
+    }
+
+    @Override
+    public void delete(Long id) {
+        removeById(id);
+        // 删除关注
+        LambdaUpdateChainWrapper<Subscribe> subLambdaUpdate = new LambdaUpdateChainWrapper<>(subscribeMapper);
+        subLambdaUpdate.eq(Subscribe::getType, ResourceTypeEnum.SUBJECT).eq(Subscribe::getResource, id).remove();
+    }
+
+    private SubjectVO subjectToVO(Subject subject) {
+        SubjectVO subjectVO = new SubjectVO();
+        BeanUtil.copyProperties(subject, subjectVO);
+        User user = userMapper.selectById(subject.getCreator());
+        UserInfoVO userInfoVO = new UserInfoVO();
+        BeanUtil.copyProperties(user, userInfoVO);
+        subjectVO.setCreator(userInfoVO);
+        return subjectVO;
     }
 
 }

@@ -5,7 +5,9 @@ import site.mizore.lobi.common.CommonPage;
 import site.mizore.lobi.entity.param.ArticleCreateParam;
 import site.mizore.lobi.entity.param.ArticlePublishParam;
 import site.mizore.lobi.entity.param.ArticleSaveParam;
+import site.mizore.lobi.entity.param.ArticleUpdateParam;
 import site.mizore.lobi.entity.po.Article;
+import site.mizore.lobi.entity.vo.ArticleManageVO;
 import site.mizore.lobi.entity.vo.ArticleSummaryVO;
 import site.mizore.lobi.entity.vo.ArticleVO;
 import site.mizore.lobi.entity.vo.ArticleViewsVO;
@@ -89,4 +91,36 @@ public interface ArticleService extends IService<Article> {
      * @return
      */
     List<ArticleSummaryVO> listByIds(List<Long> ids);
+
+    /**
+     * 获取文章分页
+     *
+     * @param page
+     * @param size
+     * @param q
+     * @return
+     */
+    CommonPage<ArticleManageVO> page(Integer page, Integer size, String q);
+
+    /**
+     * 获取文章
+     *
+     * @param id
+     * @return
+     */
+    ArticleManageVO get(Long id);
+
+    /**
+     * 修改文章
+     *
+     * @param param
+     */
+    void updateArticle(ArticleUpdateParam param);
+
+    /**
+     * 删除文章
+     *
+     * @param id
+     */
+    void delete(Long id);
 }

@@ -6,8 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import site.mizore.lobi.api.CommonResult;
+import site.mizore.lobi.common.CommonPage;
 import site.mizore.lobi.entity.param.CommentCreateParam;
 import site.mizore.lobi.entity.po.Comment;
+import site.mizore.lobi.entity.vo.CommentManageVO;
 import site.mizore.lobi.entity.vo.CommentVO;
 import site.mizore.lobi.service.CommentService;
 
@@ -35,4 +37,19 @@ public class CommentController {
         return CommonResult.success(tree);
     }
 
+    @ApiOperation("管理: 获取评论分页")
+    @GetMapping
+    public CommonResult page(@RequestParam("page") Integer page,
+                             @RequestParam("size") Integer size,
+                             @RequestParam(value = "q", required = false) String q) {
+        CommonPage<CommentManageVO> commentPage = commentService.page(page, size, q);
+        return CommonResult.success(commentPage);
+    }
+
+    @ApiOperation("管理: 删除评论")
+    @DeleteMapping("/{id}")
+    public CommonResult delete(@PathVariable Long id) {
+        commentService.delete(id);
+        return CommonResult.success("删除成功");
+    }
 }

@@ -7,6 +7,7 @@ import site.mizore.lobi.entity.param.CollectionEditParam;
 import site.mizore.lobi.entity.po.Collection;
 import site.mizore.lobi.entity.vo.CollectionCountVO;
 import site.mizore.lobi.entity.vo.CollectionInfoVO;
+import site.mizore.lobi.entity.vo.CollectionVO;
 
 import java.util.List;
 
@@ -67,4 +68,36 @@ public interface CollectionService extends IService<Collection> {
      * @return
      */
     List<CollectionCountVO> listByIds(List<Long> ids);
+
+    /**
+     * 获取文集分页
+     *
+     * @param page
+     * @param size
+     * @param q
+     * @return
+     */
+    CommonPage<CollectionVO> page(Integer page, Integer size, String q);
+
+    /**
+     * 获取文集
+     *
+     * @param id
+     * @return
+     */
+    CollectionVO get(Long id);
+
+    /**
+     * 修改文集
+     *
+     * @param param
+     */
+    void updateCollection(CollectionEditParam param);
+
+    /**
+     * 删除文集
+     *
+     * @param id
+     */
+    void delete(Long id);
 }

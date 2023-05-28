@@ -2,6 +2,7 @@ package site.mizore.lobi.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
@@ -20,6 +21,7 @@ import site.mizore.lobi.entity.po.Subscribe;
 import site.mizore.lobi.entity.po.User;
 import site.mizore.lobi.entity.vo.CollectionCountVO;
 import site.mizore.lobi.entity.vo.CollectionInfoVO;
+import site.mizore.lobi.entity.vo.CollectionVO;
 import site.mizore.lobi.entity.vo.UserInfoVO;
 import site.mizore.lobi.enums.ResourceTypeEnum;
 import site.mizore.lobi.exception.Asserts;
@@ -27,6 +29,7 @@ import site.mizore.lobi.mapper.ArticleMapper;
 import site.mizore.lobi.mapper.CollectionMapper;
 import site.mizore.lobi.mapper.SubscribeMapper;
 import site.mizore.lobi.mapper.UserMapper;
+import site.mizore.lobi.service.ArticleService;
 import site.mizore.lobi.service.CollectionService;
 import site.mizore.lobi.util.MarkdownUtil;
 
@@ -49,6 +52,8 @@ public class CollectionServiceImpl extends ServiceImpl<CollectionMapper, Collect
     private final UserMapper userMapper;
 
     private final SubscribeMapper subscribeMapper;
+
+    private final ArticleService articleService;
 
     @Override
     public List<CollectionInfoVO> getInfoList() {
@@ -180,4 +185,59 @@ public class CollectionServiceImpl extends ServiceImpl<CollectionMapper, Collect
         }).collect(Collectors.toList());
         return collectionCountVOS;
     }
+
+    @Override
+    public CommonPage<CollectionVO> page(Integer page, Integer size, String q) {
+        Page<Collection> queryPage = Page.of(page, size);
+        LambdaQueryChainWrapper<Collection> collectionLambdaQuery = lambdaQuery();
+        if (StrUtil.isNotBlank(q)) {
+            collectionLambdaQuery.like(Collection::getName, q);
+        }
+        Page<Collection> collectionPage = collectionLambdaQuery.page(queryPage);
+        CommonPage<CollectionVO> commonPage = new CommonPage<>();
+        commonPage.setTotal(collectionPage.getTotal());
+        List<CollectionVO> data = collectionPage.getRecords().stream().map(this::collectionToVO).collect(Collectors.toList());
+        commonPage.setData(data);
+        return commonPage;
+    }
+
+    @Override
+    public CollectionVO get(Long id) {
+        Collection collection = getById(id);
+        if (collection == null) {
+            Asserts.fail("不存在文集");
+        }
+        return collectionToVO(collection);
+    }
+
+    @Override
+    public void updateCollection(CollectionEditParam param) {
+        Collection collection = new Collection();
+        BeanUtil.copyProperties(param, collection);
+        updateById(collection);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        // 删除关联数据
+        LambdaUpdateChainWrapper<Subscribe> subLambdaUpdate = new LambdaUpdateChainWrapper<>(subscribeMapper);
+        subLambdaUpdate.eq(Subscribe::getType, ResourceTypeEnum.COLLECTION).eq(Subscribe::getResource, id).remove();
+        // 删除文章
+        LambdaQueryChainWrapper<Article> articleLambdaQuery = new LambdaQueryChainWrapper<>(articleMapper);
+        List<Long> articleIds = articleLambdaQuery.eq(Article::getCollection, id).list().stream().map(Article::getId).collect(Collectors.toList());
+        articleIds.forEach(articleService::delete);
+        removeById(id);
+    }
+
+    private CollectionVO collectionToVO(Collection collection) {
+        CollectionVO collectionVO = new CollectionVO();
+        BeanUtil.copyProperties(collection, collectionVO);
+        User user = userMapper.selectById(collection.getCreator());
+        UserInfoVO userInfoVO = new UserInfoVO();
+        BeanUtil.copyProperties(user, userInfoVO);
+        collectionVO.setCreator(userInfoVO);
+        return collectionVO;
+    }
+
 }

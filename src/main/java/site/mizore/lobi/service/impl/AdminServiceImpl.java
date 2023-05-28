@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -111,5 +112,30 @@ public class AdminServiceImpl implements AdminService {
         UserInfoVO userInfoVO = new UserInfoVO();
         BeanUtil.copyProperties(user, userInfoVO);
         return userInfoVO;
+    }
+
+    @Override
+    public String managerLogin(UserLoginParam userLoginParam) {
+        String token = null;
+        boolean isAdmin = false;
+        UserDetails userDetails = loadUserByUsername(userLoginParam.getUsername());
+        for (GrantedAuthority grantedAuthority : userDetails.getAuthorities()) {
+            if ("admin".equals(grantedAuthority.getAuthority())) {
+                isAdmin = true;
+            }
+        }
+        if (!isAdmin) {
+            return null;
+        }
+        if (!passwordEncoder.matches(userLoginParam.getPassword(), userDetails.getPassword())) {
+            Asserts.fail("用户名或密码错误");
+        }
+        if (!userDetails.isEnabled()) {
+            Asserts.fail("帐号已被禁用");
+        }
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        token = jwtTokenUtil.generateToken(userDetails);
+        return token;
     }
 }

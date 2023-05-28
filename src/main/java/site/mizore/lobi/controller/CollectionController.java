@@ -6,11 +6,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import site.mizore.lobi.api.CommonResult;
+import site.mizore.lobi.common.CommonPage;
 import site.mizore.lobi.entity.param.CollectionCreateParam;
 import site.mizore.lobi.entity.param.CollectionEditParam;
 import site.mizore.lobi.entity.po.Collection;
 import site.mizore.lobi.entity.vo.CollectionCountVO;
 import site.mizore.lobi.entity.vo.CollectionInfoVO;
+import site.mizore.lobi.entity.vo.CollectionVO;
 import site.mizore.lobi.service.CollectionService;
 
 import java.util.List;
@@ -60,5 +62,36 @@ public class CollectionController {
         CollectionCountVO countVO = collectionService.collectionCountInfo(id);
         return CommonResult.success(countVO);
     }
+
+    @GetMapping
+    @ApiOperation("管理: 获取文集分页")
+    public CommonResult page(@RequestParam("page") Integer page,
+                             @RequestParam("size") Integer size,
+                             @RequestParam(value = "q", required = false) String q) {
+        CommonPage<CollectionVO> collectionPage = collectionService.page(page, size, q);
+        return CommonResult.success(collectionPage);
+    }
+
+    @GetMapping("/{id}")
+    @ApiOperation("管理: 获取文集")
+    public CommonResult get(@PathVariable Long id) {
+        CollectionVO collectionVO = collectionService.get(id);
+        return CommonResult.success(collectionVO);
+    }
+
+    @PutMapping
+    @ApiOperation("管理: 修改文集")
+    public CommonResult update(@Validated @RequestBody CollectionEditParam param) {
+        collectionService.updateCollection(param);
+        return CommonResult.success("修改成功");
+    }
+
+    @DeleteMapping("/{id}")
+    @ApiOperation("管理: 删除文集")
+    public CommonResult delete(@PathVariable Long id) {
+        collectionService.delete(id);
+        return CommonResult.success("删除成功");
+    }
+
 
 }

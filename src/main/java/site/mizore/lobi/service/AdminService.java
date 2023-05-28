@@ -30,4 +30,12 @@ public interface AdminService extends UserDetailsService {
      * @return
      */
     UserInfoVO info();
+
+    /**
+     * 管理员登录
+     *
+     * @param userLoginParam
+     * @return
+     */
+    String managerLogin(UserLoginParam userLoginParam);
 }

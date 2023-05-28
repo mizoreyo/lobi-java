@@ -3,9 +3,11 @@ package site.mizore.lobi.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import site.mizore.lobi.common.CommonPage;
 import site.mizore.lobi.entity.param.UserEditParam;
+import site.mizore.lobi.entity.param.UserUpdateParam;
 import site.mizore.lobi.entity.po.User;
 import site.mizore.lobi.entity.vo.UserCountVO;
 import site.mizore.lobi.entity.vo.UserInfoVO;
+import site.mizore.lobi.entity.vo.UserVO;
 
 import java.util.List;
 
@@ -59,4 +61,36 @@ public interface UserService extends IService<User> {
      * @return
      */
     List<UserCountVO> recommend();
+
+    /**
+     * 获取用户分页
+     *
+     * @param page
+     * @param size
+     * @param q
+     * @return
+     */
+    CommonPage<UserVO> page(Integer page, Integer size, String q);
+
+    /**
+     * 获取用户
+     *
+     * @param id
+     * @return
+     */
+    UserVO get(Long id);
+
+    /**
+     * 更新用户
+     *
+     * @param param
+     */
+    void updateUser(UserUpdateParam param);
+
+    /**
+     * 删除用户
+     *
+     * @param id
+     */
+    void delete(Long id);
 }

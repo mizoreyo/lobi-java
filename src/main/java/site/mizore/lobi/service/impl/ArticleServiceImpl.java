@@ -2,6 +2,7 @@ package site.mizore.lobi.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -18,6 +19,7 @@ import site.mizore.lobi.entity.dto.ArticleESDto;
 import site.mizore.lobi.entity.param.ArticleCreateParam;
 import site.mizore.lobi.entity.param.ArticlePublishParam;
 import site.mizore.lobi.entity.param.ArticleSaveParam;
+import site.mizore.lobi.entity.param.ArticleUpdateParam;
 import site.mizore.lobi.entity.po.*;
 import site.mizore.lobi.entity.vo.*;
 import site.mizore.lobi.enums.ResourceTypeEnum;
@@ -46,6 +48,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     private final ThumbMapper thumbMapper;
 
     private final SecurityTool securityTool;
+
+    private final CollectionMapper collectionMapper;
+
+    private final MessageMapper messageMapper;
 
     @Override
     @Transactional
@@ -103,6 +109,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         subLambdaUpdate.eq(Subscribe::getType, ResourceTypeEnum.ARTICLE).eq(Subscribe::getResource, id).remove();
         LambdaUpdateChainWrapper<Thumb> thumbLambdaUpdate = new LambdaUpdateChainWrapper<>(thumbMapper);
         thumbLambdaUpdate.eq(Thumb::getArticle, id).remove();
+        // 删除包含此文章的消息
+        LambdaUpdateChainWrapper<Message> messageLambdaUpdate = new LambdaUpdateChainWrapper<>(messageMapper);
+        messageLambdaUpdate.eq(Message::getExArticle, id).remove();
         return removeById(id);
     }
 
@@ -230,6 +239,67 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             return summaryVO;
         }).collect(Collectors.toList());
         return articleSummaryVOS;
+    }
+
+    @Override
+    public CommonPage<ArticleManageVO> page(Integer page, Integer size, String q) {
+        Page<Article> queryPage = Page.of(page, size);
+        LambdaQueryChainWrapper<Article> articleLambdaQuery = lambdaQuery();
+        if (StrUtil.isNotBlank(q)) {
+            articleLambdaQuery.like(Article::getTitle, q);
+        }
+        Page<Article> articlePage = articleLambdaQuery.page(queryPage);
+        CommonPage<ArticleManageVO> articleCommonPage = new CommonPage<>();
+        articleCommonPage.setTotal(articlePage.getTotal());
+        List<ArticleManageVO> data = articlePage.getRecords().stream().map(article -> {
+            ArticleManageVO manageVO = new ArticleManageVO();
+            BeanUtil.copyProperties(article, manageVO);
+            if (article.getSubject() != null) {
+                Subject subject = subjectMapper.selectById(article.getSubject());
+                manageVO.setSubject(subject);
+            }
+            Collection collection = collectionMapper.selectById(article.getCollection());
+            manageVO.setCollection(collection);
+            User user = userMapper.selectById(article.getAuthor());
+            UserInfoVO userInfoVO = new UserInfoVO();
+            BeanUtil.copyProperties(user, userInfoVO);
+            manageVO.setAuthor(userInfoVO);
+            return manageVO;
+        }).collect(Collectors.toList());
+        articleCommonPage.setData(data);
+        return articleCommonPage;
+    }
+
+    @Override
+    public ArticleManageVO get(Long id) {
+        Article article = getById(id);
+        if (article == null) {
+            Asserts.fail("文章不存在");
+        }
+        ArticleManageVO manageVO = new ArticleManageVO();
+        BeanUtil.copyProperties(article, manageVO);
+        return manageVO;
+    }
+
+    @Override
+    public void updateArticle(ArticleUpdateParam param) {
+        Article article = new Article();
+        BeanUtil.copyProperties(param, article);
+        updateById(article);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        removeById(id);
+        // 删除喜欢、点赞
+        LambdaUpdateChainWrapper<Subscribe> subLambdaUpdate = new LambdaUpdateChainWrapper<>(subscribeMapper);
+        subLambdaUpdate.eq(Subscribe::getType, ResourceTypeEnum.ARTICLE).eq(Subscribe::getResource, id).remove();
+        LambdaUpdateChainWrapper<Thumb> thumbLambdaUpdate = new LambdaUpdateChainWrapper<>(thumbMapper);
+        thumbLambdaUpdate.eq(Thumb::getArticle, id).remove();
+        // 删除包含此文章的消息
+        LambdaUpdateChainWrapper<Message> messageLambdaUpdate = new LambdaUpdateChainWrapper<>(messageMapper);
+        messageLambdaUpdate.eq(Message::getExArticle, id).remove();
     }
 
     /**

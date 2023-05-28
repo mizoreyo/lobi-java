@@ -6,6 +6,7 @@ import site.mizore.lobi.entity.param.SubjectEditParam;
 import site.mizore.lobi.entity.param.SubjectParam;
 import site.mizore.lobi.entity.po.Subject;
 import site.mizore.lobi.entity.vo.SubjectCountVO;
+import site.mizore.lobi.entity.vo.SubjectVO;
 
 import java.util.List;
 
@@ -75,4 +76,36 @@ public interface SubjectService extends IService<Subject> {
      * @return
      */
     List<SubjectCountVO> listByIds(List<Long> ids);
+
+    /**
+     * 获取专题分页
+     *
+     * @param page
+     * @param size
+     * @param q
+     * @return
+     */
+    CommonPage<SubjectVO> page(Integer page, Integer size, String q);
+
+    /**
+     * 获取专题
+     *
+     * @param id
+     * @return
+     */
+    SubjectVO get(Long id);
+
+    /**
+     * 修改专题
+     *
+     * @param param
+     */
+    void updateSubject(SubjectEditParam param);
+
+    /**
+     * 删除专题
+     *
+     * @param id
+     */
+    void delete(Long id);
 }

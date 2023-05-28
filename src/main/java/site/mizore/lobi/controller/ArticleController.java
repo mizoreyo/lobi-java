@@ -11,7 +11,9 @@ import site.mizore.lobi.common.CommonPage;
 import site.mizore.lobi.entity.param.ArticleCreateParam;
 import site.mizore.lobi.entity.param.ArticlePublishParam;
 import site.mizore.lobi.entity.param.ArticleSaveParam;
+import site.mizore.lobi.entity.param.ArticleUpdateParam;
 import site.mizore.lobi.entity.po.Article;
+import site.mizore.lobi.entity.vo.ArticleManageVO;
 import site.mizore.lobi.entity.vo.ArticleSummaryVO;
 import site.mizore.lobi.entity.vo.ArticleVO;
 import site.mizore.lobi.entity.vo.ArticleViewsVO;
@@ -93,6 +95,36 @@ public class ArticleController {
                                            @RequestParam(value = "collectionId", required = false) Long collectionId) {
         CommonPage<ArticleSummaryVO> articlePage = articleService.getPageByCondition(page, size, userId, subjectId, collectionId);
         return CommonResult.success(articlePage);
+    }
+
+    @ApiOperation("管理: 获取文章分页")
+    @GetMapping
+    public CommonResult page(@RequestParam("page") Integer page,
+                             @RequestParam("size") Integer size,
+                             @RequestParam(value = "q", required = false) String q) {
+        CommonPage<ArticleManageVO> articlePage = articleService.page(page, size, q);
+        return CommonResult.success(articlePage);
+    }
+
+    @ApiOperation("管理: 获取文章")
+    @GetMapping("/{id}")
+    public CommonResult get(@PathVariable Long id) {
+        ArticleManageVO manageVO = articleService.get(id);
+        return CommonResult.success(manageVO);
+    }
+
+    @ApiOperation("修改文章")
+    @PutMapping
+    public CommonResult update(@Validated @RequestBody ArticleUpdateParam param) {
+        articleService.updateArticle(param);
+        return CommonResult.success("修改成功");
+    }
+
+    @ApiOperation("删除文章")
+    @DeleteMapping("/{id}")
+    public CommonResult delete(@PathVariable Long id) {
+        articleService.delete(id);
+        return CommonResult.success("删除成功");
     }
 
 }
