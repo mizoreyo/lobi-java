@@ -51,3 +51,4 @@ secure:
       - /thumb/status
       - /comment/tree
       - /user/recommend
+      - /subscribe/follower/list

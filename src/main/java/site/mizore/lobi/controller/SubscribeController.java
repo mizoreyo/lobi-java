@@ -10,6 +10,7 @@ import site.mizore.lobi.common.CommonPage;
 import site.mizore.lobi.entity.param.SubscribeOperateParam;
 import site.mizore.lobi.entity.po.Subscribe;
 import site.mizore.lobi.entity.vo.SubStatusVO;
+import site.mizore.lobi.entity.vo.UserInfoVO;
 import site.mizore.lobi.enums.ResourceTypeEnum;
 import site.mizore.lobi.service.SubscribeService;
 
@@ -51,6 +52,16 @@ public class SubscribeController {
                                            @RequestParam("size") Integer size) {
         CommonPage<Object> commonPage = subscribeService.getMySubscribePage(type, page, size);
         return CommonResult.success(commonPage);
+    }
+
+    @ApiOperation("获取粉丝列表")
+    @GetMapping("/follower/list")
+    public CommonResult getFollowerList(@RequestParam("type") ResourceTypeEnum type,
+                                        @RequestParam("resId") Long resId,
+                                        @RequestParam("page") Integer page,
+                                        @RequestParam("size") Integer size) {
+        CommonPage<UserInfoVO> userPage = subscribeService.getFollowerList(type, resId, page, size);
+        return CommonResult.success(userPage);
     }
 
 }

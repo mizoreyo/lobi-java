@@ -5,6 +5,7 @@ import site.mizore.lobi.common.CommonPage;
 import site.mizore.lobi.entity.param.SubscribeOperateParam;
 import site.mizore.lobi.entity.po.Subscribe;
 import site.mizore.lobi.entity.vo.SubStatusVO;
+import site.mizore.lobi.entity.vo.UserInfoVO;
 import site.mizore.lobi.enums.ResourceTypeEnum;
 
 public interface SubscribeService extends IService<Subscribe> {
@@ -42,4 +43,15 @@ public interface SubscribeService extends IService<Subscribe> {
      * @return
      */
     SubStatusVO subscribeStatus(Long resource, ResourceTypeEnum type);
+
+    /**
+     * 获取粉丝列表
+     *
+     * @param type
+     * @param resId
+     * @param page
+     * @param size
+     * @return
+     */
+    CommonPage<UserInfoVO> getFollowerList(ResourceTypeEnum type, Long resId, Integer page, Integer size);
 }

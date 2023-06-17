@@ -13,6 +13,7 @@ import site.mizore.lobi.entity.po.Article;
 import site.mizore.lobi.entity.po.Subscribe;
 import site.mizore.lobi.entity.po.User;
 import site.mizore.lobi.entity.vo.SubStatusVO;
+import site.mizore.lobi.entity.vo.UserInfoVO;
 import site.mizore.lobi.enums.ResourceTypeEnum;
 import site.mizore.lobi.exception.Asserts;
 import site.mizore.lobi.mapper.SubscribeMapper;
@@ -112,6 +113,22 @@ public class SubscribeServiceImpl extends ServiceImpl<SubscribeMapper, Subscribe
         Long count = lambdaQuery().eq(Subscribe::getType, type).eq(Subscribe::getResource, resource).count();
         statusVO.setCount(count);
         return statusVO;
+    }
+
+    @Override
+    public CommonPage<UserInfoVO> getFollowerList(ResourceTypeEnum type, Long resId, Integer page, Integer size) {
+        Page<Subscribe> queryPage = Page.of(page, size);
+        Page<Subscribe> subPage = lambdaQuery().eq(Subscribe::getResource, resId).eq(Subscribe::getType, type).page(queryPage);
+        CommonPage<UserInfoVO> userPage = new CommonPage<>();
+        userPage.setTotal(subPage.getTotal());
+        List<UserInfoVO> data = subPage.getRecords().stream().map(subscribe -> {
+            User user = userService.getById(subscribe.getSubscriber());
+            UserInfoVO userInfoVO = new UserInfoVO();
+            BeanUtil.copyProperties(user, userInfoVO);
+            return userInfoVO;
+        }).collect(Collectors.toList());
+        userPage.setData(data);
+        return userPage;
     }
 
 }
